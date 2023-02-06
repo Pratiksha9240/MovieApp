@@ -2,18 +2,19 @@ import React from "react";
 import { Spinner, Button } from "react-bootstrap";
 import MoviesList from "./components/MoviesList";
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 function App() {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [cancel,setCancel] = useState(false);
 
-  const getMoviesHandler = async () => {
+  const getMoviesHandler = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch("https://swapi.dev/api/film/");
+      const response = await fetch("https://swapi.dev/api/films/");
 
       if (!response.ok) {
         throw new Error("something went wrong Retrying...");
@@ -34,7 +35,25 @@ function App() {
       setError(error.message);
     }
     setIsLoading(false);
-  };
+  },[]);
+
+  useEffect(() => {
+    if(!cancel && error!=null){
+      let intervalId = setInterval(() => {
+        getMoviesHandler();
+      },5000);
+  
+      return () => {
+        clearInterval(intervalId);
+      }
+    }
+    
+  },[getMoviesHandler,cancel,error])
+
+  const cancelRequestHandler = () => {
+    setCancel(true);
+    
+  }
 
   return (
     <React.Fragment>
@@ -55,7 +74,8 @@ function App() {
             <span className="visually-hidden">Loading...</span>
           </Button>
         )}
-        {!isLoading && error && <><p>{error}</p><Button>Cancel</Button></>}
+        {!isLoading && error && !cancel &&<><p>{error}</p><Button onClick={cancelRequestHandler}>Cancel</Button></>}
+        {!isLoading && error && cancel && <p>Request Cancelled</p>}
       </section>
     </React.Fragment>
   );
