@@ -16,7 +16,7 @@ function App() {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch("https://swapi.dev/api/films/");
+      const response = await fetch("https://react-http-b29b9-default-rtdb.firebaseio.com/movies.json");
 
       if (!response.ok) {
         throw new Error("something went wrong Retrying...");
@@ -24,15 +24,18 @@ function App() {
 
       const data = await response.json();
 
-      const transformedMovies = data.results.map((m) => {
-        return {
-          id: m.episode_id,
-          title: m.title,
-          releaseDate: m.release_date,
-          openingText: m.opening_crawl,
-        };
-      });
-      setMovies(transformedMovies);
+      const loadedMovies = [];
+
+      for(const key in data){
+        loadedMovies.push({
+          id: key,
+          title: data[key].title,
+          releaseDate: data[key].releaseDate,
+          openingText: data[key].openingText
+        })
+      }
+
+      setMovies(loadedMovies);
     } catch (error) {
       setError(error.message);
     }
@@ -41,8 +44,16 @@ function App() {
   },[]);
 
 
-  function addMovieHandler(movie) {
-    console.log(movie);
+  async function addMovieHandler(movie) {
+    const response = await fetch('https://react-http-b29b9-default-rtdb.firebaseio.com/movies.json', {
+      method: 'POST',
+      body: JSON.stringify(movie),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await response.json();
+    console.log(data);
   }
 
 
@@ -50,17 +61,15 @@ function App() {
     if(error==null){
       getMoviesHandler();
     }
-   
-   if(!cancel && error!=null){
-    let intervalId = setInterval(() => {
-      getMoviesHandler();
-    },5000);
-    return () => {
-      clearInterval(intervalId);
+    
+    if(!cancel && error!=null){
+      let intervalId = setInterval(() => {
+        getMoviesHandler();
+      },5000);
+      return () => {
+        clearInterval(intervalId);
+      }
     }
-  }
-    
-    
   },[getMoviesHandler,cancel,error])
 
   
