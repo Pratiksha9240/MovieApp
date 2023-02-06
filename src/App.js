@@ -1,6 +1,7 @@
 import React from "react";
 import { Spinner, Button } from "react-bootstrap";
 import MoviesList from "./components/MoviesList";
+import AddMovie from "./components/AddMovie";
 import "./App.css";
 import { useState, useEffect, useCallback } from "react";
 
@@ -9,6 +10,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [cancel,setCancel] = useState(false);
+  const [showForm,setShowForm] = useState(false);
 
   const getMoviesHandler = useCallback(async () => {
     try {
@@ -39,18 +41,24 @@ function App() {
   },[]);
 
 
+  function addMovieHandler(movie) {
+    console.log(movie);
+  }
+
+
   useEffect(() => {
-    if(!cancel && error!=null){
-      let intervalId = setInterval(() => {
-        getMoviesHandler();
-      },5000);
-      return () => {
-        clearInterval(intervalId);
-      }
-    }
-    else if(error==null){
+    if(error==null){
       getMoviesHandler();
     }
+   
+   if(!cancel && error!=null){
+    let intervalId = setInterval(() => {
+      getMoviesHandler();
+    },5000);
+    return () => {
+      clearInterval(intervalId);
+    }
+  }
     
     
   },[getMoviesHandler,cancel,error])
@@ -66,6 +74,13 @@ function App() {
     <React.Fragment>
       <section>
         <button onClick={getMoviesHandler}>Fetch Movies</button>
+      </section>
+      {/* <section>
+        <AddMovie onAddMovie={addMovieHandler} />
+      </section> */}
+      <section>
+        {!showForm && <button onClick={() => {setShowForm(true)}}>Add Movie</button>}
+        {showForm && <AddMovie onAddMovie={addMovieHandler}/>}
       </section>
       <section>
         {!isLoading && <MoviesList movies={movies} />}
