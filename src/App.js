@@ -35,20 +35,27 @@ function App() {
       setError(error.message);
     }
     setIsLoading(false);
+    
   },[]);
+
 
   useEffect(() => {
     if(!cancel && error!=null){
       let intervalId = setInterval(() => {
         getMoviesHandler();
       },5000);
-  
       return () => {
         clearInterval(intervalId);
       }
     }
+    else if(error==null){
+      getMoviesHandler();
+    }
+    
     
   },[getMoviesHandler,cancel,error])
+
+  
 
   const cancelRequestHandler = () => {
     setCancel(true);
